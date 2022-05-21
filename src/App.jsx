@@ -11,10 +11,10 @@ function App() {
   const [apiKey, setApiKey] = useState(localStorage.getItem('apiKey') || '');
   const [apiKeyInput, setApiKeyInput] = useState(apiKey);
 
-  const [tasks, setTasks] = useState([]);
-
-  const [projects, setProjects] = useState([]);
-  const [projectsDict, setProjectsDict] = useState({});
+  const [tasks, setTasks] = useState(JSON.parse(localStorage.getItem('tasks') || '[]'));
+  const [projects, setProjects] = useState(JSON.parse(localStorage.getItem('projects') || '[]'));
+  const [projectsDict, setProjectsDict] = useState(JSON.parse(localStorage.getItem('projectsDict') || '{}'));
+  const [lastUpdated, setLastUpdated] = useState(localStorage.getItem('lastUpdated') || '');
 
   const [projectFilter, setProjectFilter] = useState(null);
 
@@ -33,9 +33,6 @@ function App() {
         projects[project.id] = project;
       }
 
-      setProjects(projectList);
-      setProjectsDict(projects);
-
       let tasks = await api.getTasks({filter: 'all'});
       tasks = tasks.map(task => {
         task.subtasks = tasks.filter(t => t.parentId === task.id);
@@ -43,8 +40,16 @@ function App() {
       })
 
       tasks = tasks.filter(t => !t.parentId);
-      console.log(tasks)
+
+      setProjects(projectList);
+      setProjectsDict(projects);
       setTasks(tasks);
+      setLastUpdated(new Date().toLocaleString());
+
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      localStorage.setItem('projects', JSON.stringify(projectList));
+      localStorage.setItem('projectsDict', JSON.stringify(projects));
+      localStorage.setItem('lastUpdated', new Date().toLocaleString());
  
     }
 
@@ -94,6 +99,9 @@ function App() {
       ))}
 
       <div>
+
+        {lastUpdated ? <div>Last updated: {lastUpdated}</div> : <b>Please wait while TodoTab loads.</b>}
+
         {projectFilter && (
           <button onClick={() => setProjectFilter(null)}>Clear filter</button>
         )}
